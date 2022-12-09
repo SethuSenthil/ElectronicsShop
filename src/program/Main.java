@@ -5,9 +5,7 @@
  */
 package program;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+
 import java.util.List;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
@@ -24,8 +22,6 @@ import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Random;
 import jdk.internal.org.jline.utils.InputStreamReader;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.*;
 
 public class Main extends javax.swing.JFrame {
 
@@ -779,7 +775,7 @@ public class Main extends javax.swing.JFrame {
     private void jButtonInsertReceiptActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonInsertReceiptActionPerformed
         // TODO add your handling code here:
         //System.out.println(dateTimePicker.datePicker.getDateStringOrEmptyString() + " " + dateTimePicker.timePicker.getTimeStringOrEmptyString()+":00.0");
-        if (!jTextFieldReceiptID.getText().isEmpty()) {
+        if (!jTextFieldReceiptID.getText().isEmpty() && !jTextFieldReceiptProductID.getText().isEmpty()) {
             int ID = Integer.parseInt(jTextFieldReceiptID.getText().trim());
 
             double price = Double.parseDouble(jTextFieldPrice.getText().trim());
@@ -793,19 +789,22 @@ public class Main extends javax.swing.JFrame {
             int productID = Integer.parseInt(jTextFieldReceiptProductID.getText().trim());
 
             System.out.println("parced ID" + ID);
-            primaryKeyViolationReceipt(ID);
-            foreignKeyViolationReceipt(productID);
+            if(primaryKeyViolationReceipt(ID)){
+            
+           if(foreignKeyViolationReceipt(productID)){
 
             addReceipt(ID, price, billingAddress, firstName, lastName, cardNumber, productID);
             refreshReceiptTable();
             clearReceiptTextFields();
+           }
+            }
         } else {
             alert("ID cannot be empty", "Insert error");
         }
     }//GEN-LAST:event_jButtonInsertReceiptActionPerformed
 
     private void jButtonUpdateReceiptActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonUpdateReceiptActionPerformed
-        if (!jTextFieldReceiptID.getText().isEmpty()) {
+        if (!jTextFieldReceiptID.getText().isEmpty() && !jTextFieldReceiptProductID.getText().isEmpty()) {
             int ID = Integer.parseInt(jTextFieldReceiptID.getText().trim());
 
             double price = Double.parseDouble(jTextFieldPrice.getText().trim());
@@ -819,10 +818,11 @@ public class Main extends javax.swing.JFrame {
 
             Receipt receipt = getReceipt(ID);
             if (receipt.getID() != -1) {
-                foreignKeyViolationReceipt(productID);
+                if(foreignKeyViolationReceipt(productID)){
                 updateReceipt(ID, price, billingAddress, firstName, lastName, cardNumber, productID);
                 refreshReceiptTable();
                 clearProductTextFields();
+                }
             } else {
                 alert("Receipt does not exist", "Update error");
             }
@@ -938,10 +938,11 @@ public class Main extends javax.swing.JFrame {
             int modelYear = Integer.parseInt(jTextFieldModelYear.getText().trim());
             String condition = jTextFieldCondition.getText().trim();
 
-            primaryKeyViolationProduct(ID);
+            if(primaryKeyViolationProduct(ID)){
             addProduct(ID, productType, productName, serialNumber, modelYear, condition);
             refreshProductTable();
             clearProductTextFields();
+            }
         } else {
             alert("ID cannot be empty", "Insert error");
         }
@@ -978,16 +979,17 @@ public class Main extends javax.swing.JFrame {
         // TODO add your handling code here:
         System.out.println("Add Return BTN clicked");
 
-        if (!jTextFieldReturnID.getText().isEmpty()) {
+        if (!jTextFieldReturnID.getText().isEmpty() && !jTextFieldReturnReceiptID.getText().isEmpty()) {
             int ID = Integer.parseInt(jTextFieldReturnID.getText().trim());
             int receiptID = Integer.parseInt(jTextFieldReturnReceiptID.getText().trim());
             String reimbursementType = jTextFieldReimbursementType.getText().trim();
             String returnReason = jTextFieldReturnReason.getText().trim();
 
-            primaryKeyViolationReturn(ID);
+            if(primaryKeyViolationReturn(ID)){
             addReturn(ID, receiptID, reimbursementType, returnReason);
             refreshReturnTable();
             clearReturnTextFields();
+            }
         } else {
             alert("ID cannot be empty", "Insert error");
         }
@@ -996,7 +998,7 @@ public class Main extends javax.swing.JFrame {
     private void jButtonUpdateReturnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonUpdateReturnActionPerformed
         // TODO add your handling code here:
         // TODO add your handling code here:
-        if (!jTextFieldReturnID.getText().isEmpty()) {
+       if (!jTextFieldReturnID.getText().isEmpty() && !jTextFieldReturnReceiptID.getText().isEmpty()) {
             int ID = Integer.parseInt(jTextFieldReturnID.getText().trim());
             int receiptID = Integer.parseInt(jTextFieldReturnReceiptID.getText().trim());
             String reimbursementType = jTextFieldReimbursementType.getText().trim();
@@ -1564,10 +1566,12 @@ String req_result = jsonobj.get("result").toString();
     //method to check for order's customer id foreign key violation
 
     
-   public void foreignKeyViolationReceipt(int id) {
+   public boolean foreignKeyViolationReceipt(int id) {
         if(getProduct(id).getID() == -1) {
             alert("Product does not exist", "Foreign Key Violation");
+            return false;
         }
+        return true;
     }
 
     public void foreignKeyViolationCascadeMessage(int id) {
@@ -1614,26 +1618,32 @@ String req_result = jsonobj.get("result").toString();
     }
 
     //method to check for customer primary key violation
-    public void primaryKeyViolationProduct(int id) {
+    public boolean primaryKeyViolationProduct(int id) {
         if (getProduct(id).getID() != -1) {
             alert("Another check in product already exists with same check in product ID, please try another check in product ID", "Primary Key Violation");
+            return false;
         }
+        return true;
     }
 
-    public void primaryKeyViolationReturn(int id) {
+    public boolean primaryKeyViolationReturn(int id) {
         if (getReturn(id).getID() != -1) {
             alert("Another return in return already exists with same check in return ID, please try another return in return ID", "Primary Key Violation");
+            return false;
         }
+        return true;
     }
 
     //method to check for order primary key violation
-    public void primaryKeyViolationReceipt(int id) {
+    public boolean primaryKeyViolationReceipt(int id) {
         System.out.println("we got with an rec id of " + getReceipt(id).getID());
         if (getReceipt(id).getID() != -1) {
             System.out.println("made rec obj " + getReceipt(id));
             // System.out.println("we got aa " + getReceipt(id).getID());
             alert("Another receipt already exists with same Receipt ID, please try another Receipt ID", "Primary Key Violation");
+            return false;
         }
+        return true;
     }
 
     //method to show an error alert
